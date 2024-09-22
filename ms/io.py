@@ -9,7 +9,8 @@ import requests
 from .utils import is_valid_json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database.pydantic_models import CompoundCreate, AdductCreate
+from database.pydantic_models import CompoundCreate, AdductCreate, \
+    RetentionTimeCreate
 
 class DataHolder:
     def __init__(self, api_url: str):
@@ -106,6 +107,18 @@ class DataHolder:
         )
         self.data = [AdductCreate(**adduct) for adduct in data]
         
+        
+    def read_retenion_times(self, file_path: str) -> list[dict]:
+        dtypes = {
+            "retention_time": "float",
+            "retention_time_comment": "string"
+        }
+        cols = ["retention_time", "retention_time_comment"]
+        new_colnames = {"retention_time_comment": "comment"}
+        data = self.read_in(file_path, dtypes=dtypes, use_cols=cols, 
+                            new_colnames=new_colnames)
+        self.data = [RetentionTimeCreate(**rt) for rt in data]
+    
     
     def insert_compounds_in_db(self):
         dicts = [model.model_dump() for model in self.data]
@@ -115,6 +128,13 @@ class DataHolder:
         assert all([isinstance(model, AdductCreate) for model in self.data])
         dicts = [model.model_dump() for model in self.data]
         insert_db(self.api_url, "/adducts/", dicts)
+    
+    def insert_retention_times_in_db(self):
+        assert all([
+          isinstance(model, RetentionTimeCreate) for model in self.data
+        ])
+        dicts = [model.model_dump() for model in self.data]
+        insert_db(self.api_url, "/retention_times/", dicts)
 
 
 # Client db api
