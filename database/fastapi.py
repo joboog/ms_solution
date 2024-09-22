@@ -53,3 +53,29 @@ def get_compounds(
     ):
     compounds = io.get_compounds(db, skip=skip, limit=limit)
     return compounds
+
+
+@app.post("/adducts/", response_model=list[pydantic_models.Adduct])
+def create_adducts(
+    adducts: list[pydantic_models.AdductCreate],
+    db: Session = Depends(get_db)
+    ):
+    adducts_to_add = []
+    for adduct in adducts:
+        db_adduct_found = io.get_adduct_by_adduct_name(
+            db, adduct_name=adduct.adduct_name
+        )
+        if not db_adduct_found:
+            adducts_to_add.append(adduct)
+                
+    return io.create_adducts(db=db, adducts=adducts_to_add)
+
+
+@app.get("/adducts/", response_model=list[pydantic_models.Adduct])
+def get_adducts(
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db)
+    ):
+    adducts = io.get_adducts(db, skip=skip, limit=limit)
+    return adducts
