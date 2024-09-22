@@ -4,6 +4,7 @@ import sys
 import json
 import openpyxl
 import pandas as pd
+import requests
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from database.pydantic_models import CompoundCreate
@@ -75,3 +76,33 @@ class DataHolder:
         dicts = [model.model_dump() for model in self.data]
         insert_db(self.api_url, "/compounds/", dicts)
 
+
+# Client db api
+def insert_db(api_url, endpoint, dicts = list[dict]):
+    assert all([type(x) == dict for x in dicts])
+    assert type(api_url) == str
+    assert type(endpoint) == str
+    
+    url = api_url + endpoint
+    print(url)
+    response = requests.post(url, json=dicts)
+    if response.status_code != 200:
+        raise Exception(f"Failed to insert {endpoint}: {response.text}")
+    return response.json()
+
+
+def get_from_db(base_url, endpoint):
+    assert [type(x) == str for x in [base_url, endpoint]]
+    url = base_url + endpoint
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to get compounds: {response.text}")
+    return response.json()
+
+
+def is_valid_json(json_str: str) -> bool:
+    try:
+        json.loads(json_str)
+        return True
+    except json.JSONDecodeError:
+        return False
