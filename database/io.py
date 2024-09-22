@@ -41,3 +41,30 @@ def get_compound_by_compound_name(db: Session, compound_name: str):
                 .first()
     )
     return result
+
+
+def create_adducts(db: Session, adducts: list[pydantic_models.AdductCreate]):
+    db_adducts = [
+        schema.Adduct(
+            adduct_name=adduct.adduct_name,
+            mass_adjustment=adduct.mass_adjustment,
+            ion_mode=adduct.ion_mode
+        )
+        for adduct in adducts
+    ]
+    db.add_all(db_adducts)
+    db.commit()
+    for adduct in db_adducts:
+        db.refresh(adduct)
+    
+    return db_adducts
+
+def get_adducts(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(schema.Adduct).offset(skip).limit(limit).all()
+
+def get_adduct_by_adduct_name(db: Session, adduct_name: str):
+    result = (db.query(schema.Adduct)
+                .filter(schema.Adduct.adduct_name == adduct_name)
+                .first()
+    )
+    return result
