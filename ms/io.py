@@ -6,6 +6,8 @@ import openpyxl
 import pandas as pd
 import requests
 
+from .utils import is_valid_json
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from database.pydantic_models import CompoundCreate
 
