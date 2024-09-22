@@ -9,7 +9,7 @@ import requests
 from .utils import is_valid_json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database.pydantic_models import CompoundCreate
+from database.pydantic_models import CompoundCreate, AdductCreate
 
 class DataHolder:
     def __init__(self, api_url: str):
@@ -73,10 +73,51 @@ class DataHolder:
           file_path, unique_cols=['compound_id'], dtypes=dtypes
         )
         self.data = [CompoundCreate(**compound) for compound in data]
+     
+     
+    def read_adducts_from_file(self, file_path: str) -> list[AdductCreate]:
+        dtypes = {
+            "name": "string",
+            "mass": "float",
+            "ion_mode": "string"
+        }
+        data = self.read_in(
+          file_path, unique_cols=['name'], dtypes=dtypes
+        )
+        key_map = {
+          "name": "adduct_name",
+          "mass": "mass_adjustment",
+          "ion_mode": "ion_mode"
+        }
+        data = [
+            {key_map.get(key, key): value for key, value in adduct.items()}
+            for adduct in data
+        ]
+        print(data)
+            
+        self.data = [AdductCreate(**adduct) for adduct in data]
         
+    
+    def read_adducts_from_json(self, json_str: str) -> list[AdductCreate]:
+        dtypes = {
+            "adduct_name": "string",
+            "mass_adjustment": "float",
+            "ion_mode": "string"
+        }
+        data = self.read_in(
+          json_str, unique_cols=['adduct_name'], dtypes=dtypes
+        )
+        self.data = [AdductCreate(**adduct) for adduct in data]
+        
+    
     def insert_compounds_in_db(self):
         dicts = [model.model_dump() for model in self.data]
         insert_db(self.api_url, "/compounds/", dicts)
+        
+    def insert_adducts_in_db(self):
+        assert all([isinstance(model, AdductCreate) for model in self.data])
+        dicts = [model.model_dump() for model in self.data]
+        insert_db(self.api_url, "/adducts/", dicts)
 
 
 # Client db api
