@@ -84,19 +84,13 @@ class DataHolder:
             "mass": "float",
             "ion_mode": "string"
         }
-        data = self.read_in(
-          file_path, unique_cols=['name'], dtypes=dtypes
-        )
-        key_map = {
+        new_cols = {
           "name": "adduct_name",
-          "mass": "mass_adjustment",
-          "ion_mode": "ion_mode"
+          "mass": "mass_adjustment"
         }
-        data = [
-            {key_map.get(key, key): value for key, value in adduct.items()}
-            for adduct in data
-        ]
-        print(data)
+        data = self.read_in(
+          file_path, unique_cols=['name'], dtypes=dtypes, new_colnames=new_cols
+        )
             
         self.data = [AdductCreate(**adduct) for adduct in data]
         
