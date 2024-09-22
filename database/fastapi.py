@@ -79,3 +79,40 @@ def get_adducts(
     ):
     adducts = io.get_adducts(db, skip=skip, limit=limit)
     return adducts
+
+
+@app.post(
+    "/measured_compounds/",
+    response_model=list[pydantic_models.MeasuredCompound]
+)
+def create_measured_compounds(
+    measured_compounds: list[pydantic_models.MeasuredCompoundCreate],
+    db: Session = Depends(get_db)
+    ):
+    msrd_cmps_to_add = []
+    for msrd_cmp in measured_compounds:
+        found = io.get_measured_compound_by_ids(
+            db, 
+            compound_id=msrd_cmp.compound_id,
+            retention_time_id=msrd_cmp.retention_time_id,
+            adduct_id=msrd_cmp.adduct_id
+        )
+        if not found:
+            msrd_cmps_to_add.append(msrd_cmp)
+        
+    return io.create_measured_compound(db, msrd_cmps_to_add)
+
+
+@app.get(
+    "/measured_compounds/", 
+    response_model=list[pydantic_models.MeasuredCompound]
+)
+def get_measured_compounds(
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db)
+    ):
+    msrd_cmps = io.get_measured_compounds(db, skip=skip, limit=limit)
+    return msrd_cmps
+
+
