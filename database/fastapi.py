@@ -116,3 +116,32 @@ def get_measured_compounds(
     return msrd_cmps
 
 
+@app.post(
+    "/retention_times/",
+    response_model=list[pydantic_models.RetentionTime]
+)
+def create_retention_times(
+    retention_times: list[pydantic_models.RetentionTimeCreate],
+    db: Session = Depends(get_db)
+    ):
+    rts_to_add = []
+    for rt in retention_times:
+        found = io.get_retention_time_by_value_comment(
+            db, retention_time=rt.retention_time, comment=rt.comment
+        )
+        if not found:
+            rts_to_add.append(rt)
+        
+    return io.create_retention_times(db, rts_to_add)
+
+@app.get(
+    "/retention_times/", 
+    response_model=list[pydantic_models.RetentionTime]
+)
+def get_retention_times(
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db)
+    ):
+    rts = io.get_retention_times(db, skip=skip, limit=limit)
+    return rts
