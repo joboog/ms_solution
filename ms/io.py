@@ -121,6 +121,7 @@ class DataHolder:
     
     
     def insert_compounds_in_db(self):
+        assert all([isinstance(model, CompoundCreate) for model in self.data])
         dicts = [model.model_dump() for model in self.data]
         insert_db(self.api_url, "/compounds/", dicts)
         
