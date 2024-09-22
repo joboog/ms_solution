@@ -20,7 +20,9 @@ class DataHolder:
       self, 
       file_path_or_str: str,
       unique_cols: list[str] = None,
-      dtypes: dict = None
+      dtypes: dict = None,
+      use_cols: list[str] = None,
+      new_colnames: dict = None
       ) -> list[dict]:
       
       if file_path_or_str.endswith('.json') or is_valid_json(file_path_or_str):
@@ -35,7 +37,8 @@ class DataHolder:
         df = pd.read_excel(
           file_path_or_str, 
           dtype=dtypes, 
-          engine='openpyxl'
+          engine='openpyxl',
+          usecols=use_cols
         )
         
       else:
@@ -55,9 +58,11 @@ class DataHolder:
             f"Duplicates in columns {non_unique_cols} are not allowed."
           )
       
+      if new_colnames is not None:
+        df = df.rename(columns=new_colnames)
+      
       df = df.where(pd.notnull(df), None)       
       data = df.to_dict(orient='records')
-      #print(data)
       return data
     
     def read_compounds(self, file_path: str) -> list[CompoundCreate]:
