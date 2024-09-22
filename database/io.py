@@ -110,3 +110,37 @@ def get_measured_compound_by_ids(
     )
     return result
 
+
+def create_retention_times(
+    db: Session, 
+    retention_times: list[pydantic_models.RetentionTimeCreate]
+    ):
+    db_rts = [
+        schema.RetentionTime(
+            retention_time=rt.retention_time,
+            comment=rt.comment
+        )
+        for rt in retention_times
+    ]
+    db.add_all(db_rts)
+    db.commit()
+    for rt in db_rts:
+        db.refresh(rt)
+    
+    return db_rts
+
+def get_retention_times(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(schema.RetentionTime).offset(skip).limit(limit).all()
+
+def get_retention_time_by_value_comment(
+    db: Session, 
+    retention_time: float,
+    comment: str
+    ):
+    result = (db.query(schema.RetentionTime)
+                .filter(schema.RetentionTime.retention_time == retention_time,
+                        schema.RetentionTime.comment == comment
+                )
+                .first()
+    )
+    return result
