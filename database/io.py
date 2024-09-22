@@ -68,3 +68,45 @@ def get_adduct_by_adduct_name(db: Session, adduct_name: str):
                 .first()
     )
     return result
+
+
+def create_measured_compounds(
+    db: Session, 
+    measured_compounds: list[pydantic_models.MeasuredCompoundCreate]
+    ):
+    db_measured_compounds = [
+        schema.MeasuredCompound(
+            compound_id=measured_compound.compound_id,
+            retention_time_id=measured_compound.retention_time_id,
+            adduct_id=measured_compound.adduct_id
+        )
+        for measured_compound in measured_compounds
+    ]
+    db.add_all(db_measured_compounds)
+    db.commit()
+    for measured_compound in db_measured_compounds:
+        db.refresh(measured_compound)
+    
+    return db_measured_compounds
+
+
+def get_measured_compounds(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(schema.MeasuredCompound).offset(skip).limit(limit).all()
+
+
+def get_measured_compound_by_ids(
+    db: Session, 
+    compound_id: int,
+    adduct_id: int,
+    retention_time_id: int
+    ):
+    result = (db.query(schema.MeasuredCompound)
+                .filter(
+                    schema.MeasuredCompound.compound_id == compound_id,
+                    schema.MeasuredCompound.adduct_id == adduct_id,
+                    schema.MeasuredCompound.retention_time_id == retention_time_id
+                )
+                .first()
+    )
+    return result
+
