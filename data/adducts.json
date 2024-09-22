@@ -1,0 +1,17 @@
+[
+{
+    "name": "M+H",
+    "mass": "1.007276",
+    "ion_mode": "positive"
+},
+{
+    "name": "M+Na",
+    "mass": "22.989218",
+    "ion_mode": "positive"
+},
+{
+    "name": "M-H",
+    "mass": "-1.007276",
+    "ion_mode": "negative"
+}
+]
