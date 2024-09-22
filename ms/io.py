@@ -55,9 +55,7 @@ class DataHolder:
             f"Duplicates in columns {non_unique_cols} are not allowed."
           )
       
-      df = df.where(pd.notnull(df), None)  
-      print(df)
-      print(df.info())        
+      df = df.where(pd.notnull(df), None)       
       data = df.to_dict(orient='records')
       #print(data)
       return data
