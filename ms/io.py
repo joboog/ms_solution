@@ -10,7 +10,7 @@ from .utils import is_valid_json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from database.pydantic_models import CompoundCreate, AdductCreate, \
-    RetentionTimeCreate
+    RetentionTimeCreate, MeasuredCompoundClient
 
 class DataHolder:
     def __init__(self, api_url: str):
@@ -113,6 +113,25 @@ class DataHolder:
                             new_colnames=new_colnames)
         self.data = [RetentionTimeCreate(**rt) for rt in data]
     
+    
+    def read_measured_compounds(
+      self, 
+      file_path: str
+      ) -> list[MeasuredCompoundClient]:
+        dtypes = {
+            "compound_id": "Int64",
+            "compound_name": "string",
+            "retention_time": "float",
+            "retention_time_comment": "string",
+            "adduct_name": "string",
+            "molecular_formula": "string"
+        }
+        use_cols = ["compound_id", "compound_name", "retention_time", 
+            "retention_time_comment", "adduct_name", "molecular_formula"]
+        df = self.read_in(file_path, dtypes=dtypes, use_cols=use_cols)
+        data = df.to_dict(orient='records')    
+        self.data = [MeasuredCompoundClient(**mc) for mc in data]
+        
     
     def insert_compounds_in_db(self):
         assert all([isinstance(model, CompoundCreate) for model in self.data])
