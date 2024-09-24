@@ -5,13 +5,11 @@ import ms.io as io
 # Read from file and POST compounds
 data_holder = io.DataHolder(api_url="http://127.0.0.1:8000") 
 data_holder.read_compounds(file_path="data/compounds.xlsx")
-data_holder.data
 data_holder.insert_compounds_in_db()
 
 # Read from file and POST adducts
 data_holder2 = io.DataHolder(api_url="http://127.0.0.1:8000")
 data_holder2.read_adducts_from_file(file_path="data/adducts.json")
-data_holder2.data
 data_holder2.insert_adducts_in_db()
 
 # Read from file and POST measured compounds
