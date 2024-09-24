@@ -24,7 +24,7 @@ class DataHolder:
       dtypes: dict = None,
       use_cols: list[str] = None,
       new_colnames: dict = None
-      ) -> list[dict]:
+      ) -> pd.DataFrame:
       
       if file_path_or_str.endswith('.json') or is_valid_json(file_path_or_str):
         df = pd.read_json(
@@ -55,9 +55,8 @@ class DataHolder:
       if new_colnames is not None:
         df = df.rename(columns=new_colnames)
       
-      df = df.where(pd.notnull(df), None)       
-      data = df.to_dict(orient='records')
-      return data
+      df = df.where(pd.notnull(df), None)
+      return df
     
     def read_compounds(self, file_path: str) -> list[CompoundCreate]:
         dtypes = {
@@ -66,9 +65,10 @@ class DataHolder:
             "molecular_formula": "string",
             "type": "string"
         }
-        data = self.read_in(
+        df = self.read_in(
           file_path, unique_cols=['compound_id'], dtypes=dtypes
         )
+        data = df.to_dict(orient='records')
         self.data = [CompoundCreate(**compound) for compound in data]
      
      
@@ -82,10 +82,10 @@ class DataHolder:
           "name": "adduct_name",
           "mass": "mass_adjustment"
         }
-        data = self.read_in(
+        df = self.read_in(
           file_path, unique_cols=['name'], dtypes=dtypes, new_colnames=new_cols
         )
-            
+        data = df.to_dict(orient='records')
         self.data = [AdductCreate(**adduct) for adduct in data]
         
     
@@ -95,9 +95,10 @@ class DataHolder:
             "mass_adjustment": "float",
             "ion_mode": "string"
         }
-        data = self.read_in(
+        df = self.read_in(
           json_str, unique_cols=['adduct_name'], dtypes=dtypes
         )
+        data = df.to_dict(orient='records')
         self.data = [AdductCreate(**adduct) for adduct in data]
         
         
