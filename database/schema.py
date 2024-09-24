@@ -8,6 +8,18 @@ from database.chem import parse_and_compute_mass, update_molecular_formula
 
 
 class Compound(Base):
+    """
+    Represents a chemical compound in the database.
+    Attributes:
+        compound_id (int): The primary key for the compound.
+        compound_name (str): The name of the compound.
+        molecular_formula (str): The molecular formula of the compound.
+        type (str): The type/category of the compound.
+        measured_compound_c (relationship): Relationship to the MeasuredCompound model.
+    Properties:
+        computed_mass (float): The computed mass of the compound based on its 
+        molecular formula.
+    """
     __tablename__ = "compounds"
 
     compound_id = Column(Integer, primary_key=True, index=True, nullable=False)
@@ -29,6 +41,15 @@ class Compound(Base):
     
 
 class Adduct(Base):
+    """
+    Represents an adduct in the database.
+    Attributes:
+        adduct_id (int): The primary key for the adduct.
+        adduct_name (str): The name of the adduct.
+        mass_adjustment (float): The mass adjustment value for the adduct.
+        ion_mode (str): The ion mode associated with the adduct.
+        measured_compound_a (relationship): Relationship to the MeasuredCompound model.
+    """
     __tablename__ = "adducts"
 
     adduct_id = Column(Integer, primary_key=True, index=True)
@@ -36,10 +57,41 @@ class Adduct(Base):
     mass_adjustment = Column(Float, nullable=False)
     ion_mode = Column(String, nullable=False)
     
-    measured_compound_a = relationship("MeasuredCompound", back_populates="adduct")
+    measured_compound_a = relationship(
+        "MeasuredCompound", back_populates="adduct"
+    )
     
 
 class MeasuredCompound(Base):
+    """
+    MeasuredCompound is a SQLAlchemy ORM model representing a measured compound
+    in the database.
+    Attributes:
+        measured_compound_id (int): Primary key for the measured compound.
+        compound_id (int): Foreign key referencing the compound.
+        retention_time_id (int): Foreign key referencing the retention time.
+        adduct_id (int): Foreign key referencing the adduct.
+        molecular_formula_c (str): Computed molecular formula of the compound.
+    Relationships:
+        compound (Compound): Relationship to the Compound model.
+        retention_time (RetentionTime): Relationship to the RetentionTime model.
+        adduct (Adduct): Relationship to the Adduct model.
+    Properties:
+        molecular_formula_c (str): Hybrid property to get the molecular formula
+        from the compound.
+        molecular_formula (str): Hybrid property to compute the molecular formula
+        using the compound and adduct.
+        measured_mass (float): Hybrid property to compute the measured mass 
+        from the molecular formula.
+    Methods:
+        molecular_formula_c.expression: SQL expression for querying the 
+        molecular formula.
+        molecular_formula_c.setter: Setter for the molecular formula.
+        molecular_formula.expression: SQL expression for querying the 
+        computed molecular formula.
+        measured_mass.expression: SQL expression for querying the computed 
+        measured mass.
+    """
     __tablename__ = "measured_compounds"
 
     measured_compound_id = Column(Integer, primary_key=True, index=True)
@@ -92,6 +144,14 @@ class MeasuredCompound(Base):
 
 
 class RetentionTime(Base):
+    """
+    Represents the retention times in the database.
+
+    Attributes:
+        retention_time_id (int): The primary key for the retention time entry.
+        retention_time (float): The retention time value.
+        comment (str): An optional comment about the retention time.
+    """
     __tablename__ = "retention_times"
 
     retention_time_id = Column(Integer, primary_key=True, index=True)
