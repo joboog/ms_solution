@@ -8,7 +8,7 @@ from .database import Base
 class Compound(Base):
     __tablename__ = "compounds"
 
-    compound_id = Column(Integer, primary_key=True, index=True)
+    compound_id = Column(Integer, primary_key=True, index=True, nullable=False)
     compound_name = Column(String, index=True, nullable=False)
     molecular_formula = Column(String, nullable=False)
     type = Column(String)
