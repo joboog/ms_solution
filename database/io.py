@@ -166,7 +166,7 @@ def create_measured_compounds(
     return mc_schema
 
 
-def get_measured_compounds(db: Session, skip: int = 0, limit: int = 100):
+def get_measured_compounds(db: Session):
     result = (db.query(
                     schema.MeasuredCompound.compound_id,
                     schema.Compound.compound_name,
@@ -178,8 +178,6 @@ def get_measured_compounds(db: Session, skip: int = 0, limit: int = 100):
                 .join(schema.RetentionTime, schema.MeasuredCompound.retention_time_id == schema.RetentionTime.retention_time_id)
                 .join(schema.Compound, schema.MeasuredCompound.compound_id == schema.Compound.compound_id)
                 .join(schema.Adduct, schema.MeasuredCompound.adduct_id == schema.Adduct.adduct_id)
-                .offset(skip)
-                .limit(limit)
                 .all()
     )
     return result
@@ -205,9 +203,7 @@ def get_measured_compounds_by_rt_type_ion_mode(
     db: Session, 
     retention_time: float, 
     compound_type: str, 
-    ion_mode: str, 
-    skip: int = 0, 
-    limit: int = 100
+    ion_mode: str
 ):
     result = (db.query(
                     schema.MeasuredCompound.compound_id,
@@ -225,8 +221,6 @@ def get_measured_compounds_by_rt_type_ion_mode(
                     schema.Compound.type == compound_type,
                     schema.Adduct.ion_mode == ion_mode
                 )
-                .offset(skip)
-                .limit(limit)
                 .all()
     )
     return result

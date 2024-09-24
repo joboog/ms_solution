@@ -91,28 +91,26 @@ def create_measured_compounds(
     response_model=list[pydantic_models.MeasuredCompoundClient]
 )
 def get_measured_compounds(
-    skip: int = 0, 
-    limit: int = 100, 
+    retention_time: float | None = None,
+    type: str | None = None,
+    ion_mode: str | None = None,
     db: Session = Depends(get_db)
     ):
-    msrd_cmps = io.get_measured_compounds(db, skip=skip, limit=limit)
-    return msrd_cmps
+    params = [retention_time, type, ion_mode]
+    
+    if all(params):
+        msrd_cmps = io.get_measured_compounds_by_rt_type_ion_mode(
+            db, retention_time, type, ion_mode
+        )
+        
+    elif any(params) and not all(params):
+        raise HTTPException(
+            status_code=400, 
+            detail="Please provide all of retention_time, type, and ion_mode.")
 
-@app.get(
-    "/measured_compounds/", 
-    response_model=list[pydantic_models.MeasuredCompoundClient]
-)
-def get_measured_compounds_by_rt_type_ion_mode(
-    retention_time: float,
-    type: str,
-    ion_mode: str,
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db)
-    ):
-    msrd_cmps = io.get_measured_compounds_by_rt_type_ion_mode(
-        db, retention_time, type, ion_mode, skip, limit
-    )
+    else:
+        msrd_cmps = io.get_measured_compounds(db)
+        
     return msrd_cmps
 
 @app.get(
