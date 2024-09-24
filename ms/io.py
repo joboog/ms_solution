@@ -137,6 +137,19 @@ class DataHolder:
         ])
         dicts = [model.model_dump() for model in self.data]
         insert_db(self.api_url, "/measured_compounds/", dicts)
+        
+    def get_retention_times_from_db(
+        self, 
+        retention_time: float, 
+        type: str,
+        ion_mode: str
+        ):
+        params = {
+            "retention_time": retention_time,
+            "type": type,
+            "ion_mode": ion_mode
+        }
+        return get_from_db(self.api_url, "/measured_compounds/", params)
 
 
 # Client db api
