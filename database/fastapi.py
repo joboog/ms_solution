@@ -96,17 +96,17 @@ def get_measured_compounds(
     ion_mode: str | None = None,
     db: Session = Depends(get_db)
     ):
-    params = [retention_time, type, ion_mode]
+    params = [retention_time, ion_mode]
     
     if all(params):
         msrd_cmps = io.get_measured_compounds_by_rt_type_ion_mode(
-            db, retention_time, type, ion_mode
+            db, retention_time, ion_mode, type
         )
         
     elif any(params) and not all(params):
         raise HTTPException(
             status_code=400, 
-            detail="Please provide all of retention_time, type, and ion_mode.")
+            detail="Please provide retention_time and ion_mode.")
 
     else:
         msrd_cmps = io.get_measured_compounds(db)

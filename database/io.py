@@ -202,8 +202,8 @@ def get_measured_compound_by_ids(
 def get_measured_compounds_by_rt_type_ion_mode(
     db: Session, 
     retention_time: float, 
-    compound_type: str, 
-    ion_mode: str
+    ion_mode: str,
+    compound_type: str | None = None
 ):
     result = (db.query(
                     schema.MeasuredCompound.compound_id,
