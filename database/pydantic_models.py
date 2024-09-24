@@ -52,7 +52,6 @@ class MeasuredCompoundClient(BaseModel):
     retention_time: float
     retention_time_comment: str | None = None
     adduct_name: str
-    molecular_formula: str
 
 class RetentionTimeBase(BaseModel):
     retention_time: float
