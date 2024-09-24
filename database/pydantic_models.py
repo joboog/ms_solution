@@ -46,6 +46,13 @@ class MeasuredCompound(MeasuredCompoundBase):
     class Config:
         orm_mode = True
 
+class MeasuredCompoundClient(BaseModel):
+    compound_id: int
+    compound_name: str
+    retention_time: float
+    retention_time_comment: str | None = None
+    adduct_name: str
+    molecular_formula: str
 
 class RetentionTimeBase(BaseModel):
     retention_time: float
