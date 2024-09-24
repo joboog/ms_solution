@@ -120,6 +120,25 @@ class DataHolder:
         data = df.to_dict(orient='records')    
         self.data = [MeasuredCompoundClient(**mc) for mc in data]
         
+    def add_measured_compound(
+      self,
+      compound_id: int,
+      compound_name: str,
+      retention_time: float,
+      adduct_name: str,
+      molecular_formula: str,
+      retention_time_comment: str | None = None
+    ):
+        mc = MeasuredCompoundClient(
+          compound_id=compound_id,
+          compound_name=compound_name,
+          retention_time=retention_time,
+          retention_time_comment=retention_time_comment,
+          adduct_name=adduct_name,
+          molecular_formula=molecular_formula
+        )
+        self.data = [mc]
+        
     
     def insert_compounds_in_db(self):
         assert all([isinstance(model, CompoundCreate) for model in self.data])
