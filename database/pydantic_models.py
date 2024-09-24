@@ -11,7 +11,7 @@ class CompoundCreate(CompoundBase):
 
 class Compound(CompoundBase):
     compound_id: int
-    #computed_mass: float
+    computed_mass: float
 
     class Config:
         orm_mode = True

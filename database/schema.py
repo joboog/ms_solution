@@ -1,8 +1,9 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from sqlalchemy.orm import relationship
-#from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from .database import Base
+from database.chem import parse_and_compute_mass
 
 
 class Compound(Base):
@@ -12,12 +13,15 @@ class Compound(Base):
     compound_name = Column(String, index=True, nullable=False)
     molecular_formula = Column(String, nullable=False)
     type = Column(String)
-    # _computed_mass = Column("computed_mass", Float)  # Store the computed value
+    computed_mass = Column("computed_mass", Float)
 
-    # @hybrid_property
-    # def computed_mass(self):
-    #     # Define the logic to compute the mass
-    #     return some_computation_based_on_other_columns(self.molecular_formula)
+    @hybrid_property # For computing on the Compound instance
+    def computed_mass(self):
+        return parse_and_compute_mass(self.molecular_formula)
+
+    @computed_mass.expression # For computing in SQL queries
+    def computed_mass_expression(cls):
+        return parse_and_compute_mass(cls.molecular_formula)
 
 
 class Adduct(Base):
