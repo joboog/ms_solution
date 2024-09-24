@@ -172,8 +172,7 @@ def get_measured_compounds(db: Session):
                     schema.Compound.compound_name,
                     schema.RetentionTime.retention_time,
                     schema.RetentionTime.comment,
-                    schema.Adduct.adduct_name,
-                    schema.Compound.molecular_formula
+                    schema.Adduct.adduct_name
                 )
                 .join(schema.RetentionTime, schema.MeasuredCompound.retention_time_id == schema.RetentionTime.retention_time_id)
                 .join(schema.Compound, schema.MeasuredCompound.compound_id == schema.Compound.compound_id)
