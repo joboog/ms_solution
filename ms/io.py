@@ -14,6 +14,12 @@ from database.pydantic_models import CompoundCreate, AdductCreate, \
 
 class DataHolder:
     def __init__(self, api_url: str):
+        """
+        Initializes the instance with the given API URL.
+
+        Args:
+          api_url (str): The URL of the API to connect to.
+        """
         self.api_url =  api_url
         self.data = None
         
@@ -25,6 +31,19 @@ class DataHolder:
       use_cols: list[str] = None,
       new_colnames: dict = None
       ) -> pd.DataFrame:
+      """
+      Reads data from a JSON or Excel file and returns it as a pandas DataFrame.
+      Args:
+        file_path_or_str (str): Path to the file or a JSON string.
+        unique_cols (list[str], optional): List of columns that should be unique. Defaults to None.
+        dtypes (dict, optional): Dictionary specifying the data types of columns. Defaults to None.
+        use_cols (list[str], optional): List of columns to read from the file. Defaults to None.
+        new_colnames (dict, optional): Dictionary for renaming columns. Defaults to None.
+      Returns:
+        pd.DataFrame: DataFrame containing the data from the file.
+      Raises:
+        ValueError: If the file type is not supported.
+      """
       
       if file_path_or_str.endswith('.json') or is_valid_json(file_path_or_str):
         df = pd.read_json(
@@ -59,6 +78,16 @@ class DataHolder:
       return df
     
     def read_compounds(self, file_path: str) -> list[CompoundCreate]:
+        """
+        Reads compound data from a file and returns a list of CompoundCreate objects.
+
+        Args:
+            file_path (str): The path to the file containing compound data.
+
+        Returns:
+            list[CompoundCreate]: A list of CompoundCreate objects.
+
+        """
         dtypes = {
             "compound_id": "Int64",
             "compound_name": "string",
@@ -73,6 +102,20 @@ class DataHolder:
      
      
     def read_adducts_from_file(self, file_path: str) -> list[AdductCreate]:
+        """
+        Reads adduct data from a specified file and returns a list of AdductCreate objects.
+
+        Args:
+            file_path (str): The path to the file containing adduct data.
+
+        Returns:
+            list[AdductCreate]: A list of AdductCreate objects populated with data from the file.
+
+        Raises:
+            FileNotFoundError: If the specified file does not exist.
+            ValueError: If the data in the file is not in the expected format.
+
+        """
         dtypes = {
             "name": "string",
             "mass": "float",
@@ -90,6 +133,15 @@ class DataHolder:
         
     
     def read_adducts_from_json(self, json_str: str) -> list[AdductCreate]:
+        """
+        Reads adduct data from a JSON string and converts it into a list of AdductCreate objects.
+
+        Args:
+            json_str (str): A JSON string containing adduct data.
+
+        Returns:
+            list[AdductCreate]: A list of AdductCreate objects created from the JSON data.
+        """
         dtypes = {
             "adduct_name": "string",
             "mass_adjustment": "float",
@@ -103,9 +155,19 @@ class DataHolder:
         
     
     def read_measured_compounds(
-      self, 
-      file_path: str
-      ) -> list[MeasuredCompoundClient]:
+        self, 
+        file_path: str
+        ) -> list[MeasuredCompoundClient]:
+        """
+        Reads measured compounds from a specified file and returns a list of MeasuredCompoundClient objects.
+
+        Args:
+            file_path (str): The path to the file containing the measured compounds data.
+
+        Returns:
+            list[MeasuredCompoundClient]: A list of MeasuredCompoundClient objects populated with the data from the file.
+        """
+      
         dtypes = {
             "compound_id": "Int64",
             "compound_name": "string",
@@ -121,14 +183,28 @@ class DataHolder:
         self.data = [MeasuredCompoundClient(**mc) for mc in data]
         
     def add_measured_compound(
-      self,
-      compound_id: int,
-      compound_name: str,
-      retention_time: float,
-      adduct_name: str,
-      molecular_formula: str,
-      retention_time_comment: str | None = None
+        self,
+        compound_id: int,
+        compound_name: str,
+        retention_time: float,
+        adduct_name: str,
+        molecular_formula: str,
+        retention_time_comment: str | None = None
     ):
+        """
+        Adds a measured compound to the data list.
+
+        Parameters:
+        - compound_id (int): The unique identifier for the compound.
+        - compound_name (str): The name of the compound.
+        - retention_time (float): The retention time of the compound.
+        - adduct_name (str): The name of the adduct.
+        - molecular_formula (str): The molecular formula of the compound.
+        - retention_time_comment (str | None, optional): Additional comments on the retention time. Defaults to None.
+
+        Returns:
+        None
+        """
         mc = MeasuredCompoundClient(
           compound_id=compound_id,
           compound_name=compound_name,
@@ -177,6 +253,17 @@ class DataHolder:
 
 # Client db api
 def insert_db(api_url, endpoint, dicts = list[dict]):
+    """
+    Inserts a list of dictionaries into a database via a POST request to the specified API endpoint.
+    Args:
+      api_url (str): The base URL of the API.
+      endpoint (str): The specific endpoint to which the data should be posted.
+      dicts (list[dict]): A list of dictionaries containing the data to be inserted.
+    Returns:
+      dict: The JSON response from the API if the request is successful.
+    Raises:
+      Exception: If the POST request fails (i.e., the status code is not 200), an exception is raised with the error message from the response.
+    """
     assert all([type(x) == dict for x in dicts])
     assert type(api_url) == str
     assert type(endpoint) == str
@@ -190,6 +277,20 @@ def insert_db(api_url, endpoint, dicts = list[dict]):
 
 
 def get_from_db(base_url, endpoint, params=None):
+    """
+    Fetch data from a database endpoint.
+
+    Args:
+      base_url (str): The base URL of the database.
+      endpoint (str): The specific endpoint to query.
+      params (dict, optional): A dictionary of query parameters to include in the request. Defaults to None.
+
+    Returns:
+      dict: The JSON response from the database.
+
+    Raises:
+      Exception: If the request fails or the response status code is not 200.
+    """
     assert [type(x) == str for x in [base_url, endpoint]]
     url = base_url + endpoint
     response = requests.get(url, params=params)
