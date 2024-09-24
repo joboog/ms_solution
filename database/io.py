@@ -164,3 +164,14 @@ def get_retention_time_by_value_comment(
                 .first()
     )
     return result
+
+
+def get_retention_time_by_value(
+    db: Session, 
+    retention_time: float
+    ):
+    result = (db.query(schema.RetentionTime)
+                .filter(schema.RetentionTime.retention_time == retention_time)
+                .first()
+    )
+    return result
