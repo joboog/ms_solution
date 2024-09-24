@@ -167,7 +167,22 @@ def create_measured_compounds(
 
 
 def get_measured_compounds(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(schema.MeasuredCompound).offset(skip).limit(limit).all()
+    result = (db.query(
+                    schema.MeasuredCompound.compound_id,
+                    schema.Compound.compound_name,
+                    schema.RetentionTime.retention_time,
+                    schema.RetentionTime.comment,
+                    schema.Adduct.adduct_name,
+                    schema.Compound.molecular_formula
+                )
+                .join(schema.RetentionTime, schema.MeasuredCompound.retention_time_id == schema.RetentionTime.retention_time_id)
+                .join(schema.Compound, schema.MeasuredCompound.compound_id == schema.Compound.compound_id)
+                .join(schema.Adduct, schema.MeasuredCompound.adduct_id == schema.Adduct.adduct_id)
+                .offset(skip)
+                .limit(limit)
+                .all()
+    )
+    return result
 
 
 def get_measured_compound_by_ids(

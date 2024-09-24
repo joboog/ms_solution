@@ -87,8 +87,8 @@ def create_measured_compounds(
     return msc_d["invalid"]
 
 @app.get(
-    "/measured_compounds_ids/",
-    response_model=list[pydantic_models.MeasuredCompound]
+    "/measured_compounds/",
+    response_model=list[pydantic_models.MeasuredCompoundClient]
 )
 def get_measured_compounds(
     skip: int = 0, 
