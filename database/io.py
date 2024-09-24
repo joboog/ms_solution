@@ -5,6 +5,7 @@ from . import pydantic_models, schema
 
 def create_compound(db: Session, compound: pydantic_models.CompoundCreate):
     db_compound = schema.Compound(
+        compound_id=compound.compound_id,
         compound_name=compound.compound_name, 
         molecular_formula=compound.molecular_formula,
         type=compound.type
@@ -18,6 +19,7 @@ def create_compound(db: Session, compound: pydantic_models.CompoundCreate):
 def create_compounds(db: Session, compounds: list[pydantic_models.CompoundCreate]):
     db_compounds = [
         schema.Compound(
+            compound_id=compound.compound_id,
             compound_name=compound.compound_name,
             molecular_formula=compound.molecular_formula,
             type=compound.type
