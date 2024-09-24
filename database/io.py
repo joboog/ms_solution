@@ -5,6 +5,15 @@ import pandas as pd
 
 
 def create_compounds(db: Session, compounds: list[pydantic_models.CompoundCreate]):
+    """
+    Create and add multiple compounds to the database.
+    Args:
+        db (Session): SQLAlchemy database session.
+        compounds (list[pydantic_models.CompoundCreate]): List of compounds to 
+        be created.
+    Returns:
+        list[schema.Compound]: List of created compound objects.
+    """
     db_compounds = [
         schema.Compound(
             compound_id=compound.compound_id,
@@ -23,9 +32,22 @@ def create_compounds(db: Session, compounds: list[pydantic_models.CompoundCreate
 
 
 def get_compounds(db: Session, skip: int = 0, limit: int = 100):
+    """
+    Retrieve a list of compounds from the database with optional pagination.
+    """
     return db.query(schema.Compound).offset(skip).limit(limit).all()
 
 def get_compound_by_compound_name(db: Session, compound_name: str):
+    """
+    Retrieve a compound from the database by its name.
+
+    Args:
+        db (Session): The database session to use for the query.
+        compound_name (str): The name of the compound to retrieve.
+
+    Returns:
+        schema.Compound: The compound object if found, otherwise None.
+    """
     result = (db.query(schema.Compound)
                 .filter(schema.Compound.compound_name == compound_name)
                 .first()
@@ -36,7 +58,20 @@ def get_compound_by_compound_name(db: Session, compound_name: str):
 def get_compound_by_id_name(
     db: Session,
     compound_id: int,
-    compound_name: str):
+    compound_name: str
+    ):
+    """
+    Retrieve compounds from the database by compound ID and name.
+
+    Args:
+        db (Session): The database session to use for the query.
+        compound_id (int): The ID of the compound to retrieve.
+        compound_name (str): The name of the compound to retrieve.
+
+    Returns:
+        List[schema.Compound]: A list of compounds matching the given ID and 
+        name.
+    """
     result = (db.query(schema.Compound)
                 .filter(schema.Compound.compound_id == compound_id,
                         schema.Compound.compound_name == compound_name)
@@ -46,6 +81,16 @@ def get_compound_by_id_name(
 
 
 def create_adducts(db: Session, adducts: list[pydantic_models.AdductCreate]):
+    """
+    Creates and adds a list of adducts to the database.
+    Args:
+        db (Session): The database session to use for the operation.
+        adducts (list[pydantic_models.AdductCreate]): A list of adducts to be 
+        created and added to the database.
+    Returns:
+        list[schema.Adduct]: A list of the created adducts after being added 
+        to the database.
+    """
     db_adducts = [
         schema.Adduct(
             adduct_name=adduct.adduct_name,
@@ -62,9 +107,31 @@ def create_adducts(db: Session, adducts: list[pydantic_models.AdductCreate]):
     return db_adducts
 
 def get_adducts(db: Session, skip: int = 0, limit: int = 100):
+    """
+    Retrieve a list of adducts from the database with pagination.
+
+    Args:
+        db (Session): The database session to use for the query.
+        skip (int, optional): The number of records to skip. Defaults to 0.
+        limit (int, optional): The maximum number of records to return. 
+        Defaults to 100.
+
+    Returns:
+        List[schema.Adduct]: A list of adducts from the database.
+    """
     return db.query(schema.Adduct).offset(skip).limit(limit).all()
 
 def get_adduct_by_adduct_name(db: Session, adduct_name: str):
+    """
+    Retrieve an adduct from the database by its name.
+
+    Args:
+        db (Session): The database session to use for the query.
+        adduct_name (str): The name of the adduct to retrieve.
+
+    Returns:
+        schema.Adduct: The adduct object if found, otherwise None.
+    """
     result = (db.query(schema.Adduct)
                 .filter(schema.Adduct.adduct_name == adduct_name)
                 .first()
@@ -76,7 +143,28 @@ def prepare_measured_compounds_create(
     db: Session, 
     measured_compounds: list[pydantic_models.MeasuredCompoundClient]
     ) -> dict:
-
+    """
+    Prepares a list of MeasuredCompoundCreate objects for creation in the 
+    database. This function validates the provided measured compounds by 
+    checking the existence of the compound, adduct, and retention time in the
+    database. If any of these entities do not exist, the corresponding measured
+    compound is marked as invalid. 
+    Otherwise, it prepares the MeasuredCompoundCreate objects for valid entries.
+    Args:
+        db (Session): The database session.
+        measured_compounds (list[pydantic_models.MeasuredCompoundClient]): 
+            A list of MeasuredCompoundClient objects to be validated and 
+            prepared.
+    Returns:
+        dict: A dictionary with two keys:
+            - "valid": A list of MeasuredCompoundCreate objects that are valid 
+            and  ready for creation.
+            - "invalid": A list of MeasuredCompoundClient objects that are 
+            invalid due to missing compound, adduct, or retention time.
+    Raises:
+        ValueError: If all input data is invalid.
+    """
+    
     measured_compounds_create = []
     measured_compounds_invalid = []
     # Check compound_id and compound_name
@@ -115,11 +203,7 @@ def prepare_measured_compounds_create(
                     retention_time=mcc.retention_time,
                     comment=mcc.retention_time_comment
                 )]
-            )[0]
-            
-        # Check molecular_formula
-        
-        
+            )[0]   
         
             
         # Create MeasuredCompoundCreate objects
@@ -142,8 +226,19 @@ def create_measured_compounds(
     db: Session, 
     measured_compounds: list[pydantic_models.MeasuredCompoundCreate]
     ) -> list[schema.MeasuredCompound]:
-    
-    # Create db schema objects
+    """
+    Create and store measured compounds in the database.
+    This function takes a list of measured compounds, checks if they already 
+    exist in the database,
+    and if not, creates new entries for them.
+    Args:
+        db (Session): The database session to use for the operation.
+        measured_compounds (list[pydantic_models.MeasuredCompoundCreate]): A 
+        list of measured compound creation models containing the necessary data
+        to create new measured compounds.
+    Returns:
+        list[schema.MeasuredCompound]: A list of the created measured compound schema objects.
+    """
     mc_schema = [
         schema.MeasuredCompound(
             compound_id=mc.compound_id,
@@ -157,7 +252,6 @@ def create_measured_compounds(
         )
     ]
     
-    # Add to database
     db.add_all(mc_schema)
     db.commit()
     for mc in mc_schema:
@@ -167,6 +261,25 @@ def create_measured_compounds(
 
 
 def get_measured_compounds(db: Session):
+    """
+    Retrieve measured compounds from the database.
+
+    This function queries the database to retrieve information about measured 
+    compounds, including their compound ID, compound name, retention time, 
+    comments, and adduct name.
+
+    Args:
+        db (Session): SQLAlchemy session object for database interaction.
+
+    Returns:
+        List[Tuple[int, str, float, str, str]]: A list of tuples containing 
+        the following information:
+            - compound_id (int): The ID of the compound.
+            - compound_name (str): The name of the compound.
+            - retention_time (float): The retention time of the compound.
+            - comment (str): Any comments associated with the retention time.
+            - adduct_name (str): The name of the adduct.
+    """
     result = (db.query(
                     schema.MeasuredCompound.compound_id,
                     schema.Compound.compound_name,
@@ -188,6 +301,20 @@ def get_measured_compound_by_ids(
     adduct_id: int,
     retention_time_id: int
     ):
+    """
+    Retrieve a measured compound from the database by its compound ID, adduct 
+    ID, and retention time ID.
+
+    Args:
+        db (Session): The database session to use for the query.
+        compound_id (int): The ID of the compound.
+        adduct_id (int): The ID of the adduct.
+        retention_time_id (int): The ID of the retention time.
+
+    Returns:
+        MeasuredCompound: The measured compound that matches the given IDs, or 
+        None if no match is found.
+    """
     result = (db.query(schema.MeasuredCompound)
                 .filter(
                     schema.MeasuredCompound.compound_id == compound_id,
@@ -203,7 +330,22 @@ def get_measured_compounds_by_rt_type_ion_mode(
     retention_time: float, 
     ion_mode: str,
     compound_type: str | None = None
-):
+    ):
+    """
+    Retrieve measured compounds from the database based on retention time, ion 
+    mode, and optional compound type.
+
+    Args:
+        db (Session): The database session to use for the query.
+        retention_time (float): The retention time to filter compounds.
+        ion_mode (str): The ion mode to filter compounds.
+        compound_type (str | None, optional): The type of compound to filter. 
+        Defaults to None.
+
+    Returns:
+        list: A list of tuples containing the compound ID, compound name, 
+        retention time, comment, adduct name, and molecular formula.
+    """
     result = (db.query(
                     schema.MeasuredCompound.compound_id,
                     schema.Compound.compound_name,
@@ -229,6 +371,16 @@ def create_retention_times(
     db: Session, 
     retention_times: list[pydantic_models.RetentionTimeCreate]
     ):
+    """
+    Creates and stores retention times in the database.
+    Args:
+        db (Session): The database session to use for the operation.
+        retention_times (list[pydantic_models.RetentionTimeCreate]): A list of 
+        retention time objects to be created.
+    Returns:
+        list[schema.RetentionTime]: A list of the created retention time 
+        objects with refreshed state from the database.
+    """
     db_rts = [
         schema.RetentionTime(
             retention_time=rt.retention_time,
@@ -244,6 +396,18 @@ def create_retention_times(
     return db_rts
 
 def get_retention_times(db: Session, skip: int = 0, limit: int = 100):
+    """
+    Retrieve retention times from the database with optional pagination.
+
+    Args:
+        db (Session): The database session to use for the query.
+        skip (int, optional): The number of records to skip. Defaults to 0.
+        limit (int, optional): The maximum number of records to return. 
+        Defaults to 100.
+
+    Returns:
+        List[RetentionTime]: A list of retention time records.
+    """
     return db.query(schema.RetentionTime).offset(skip).limit(limit).all()
 
 def get_retention_time_by_value_comment(
@@ -251,6 +415,19 @@ def get_retention_time_by_value_comment(
     retention_time: float,
     comment: str
     ):
+    """
+    Retrieve a retention time record from the database based on the retention 
+    time value and comment.
+
+    Args:
+        db (Session): The database session to use for the query.
+        retention_time (float): The retention time value to filter by.
+        comment (str): The comment to filter by.
+
+    Returns:
+        schema.RetentionTime: The first retention time record that matches 
+        the given retention time and comment, or None if no match is found.
+    """
     result = (db.query(schema.RetentionTime)
                 .filter(schema.RetentionTime.retention_time == retention_time,
                         schema.RetentionTime.comment == comment
