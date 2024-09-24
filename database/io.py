@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from . import pydantic_models, schema
+import pandas as pd
 
 
 def create_compound(db: Session, compound: pydantic_models.CompoundCreate):
@@ -90,24 +91,98 @@ def get_adduct_by_adduct_name(db: Session, adduct_name: str):
     return result
 
 
+def prepare_measured_compounds_create(
+    db: Session, 
+    measured_compounds: list[pydantic_models.MeasuredCompoundClient]
+    ) -> dict:
+
+    measured_compounds_create = []
+    measured_compounds_invalid = []
+    # Check compound_id and compound_name
+    for mcc in measured_compounds:
+        
+        # Check compound
+        compound = get_compound_by_id_name(
+            db, mcc.compound_id, mcc.compound_name
+        )
+        if not compound:
+            # raise ValueError(
+            #     f"Compound with name {mcc.compound_name} and ID "
+            #     f"{mcc.compound_id} does not exist in the database."
+            # )
+            measured_compounds_invalid.append(mcc)
+            continue
+        
+        # Check adduct
+        adduct = get_adduct_by_adduct_name(db, mcc.adduct_name)
+        if not adduct:
+            # raise ValueError(
+            #     f"Adduct with name {mcc.adduct_name} does not exist in the "
+            #     " database."
+            # )
+            measured_compounds_invalid.append(mcc)
+            continue
+        
+        # Check or add retention_time
+        rt = get_retention_time_by_value_comment(
+            db, mcc.retention_time, mcc.retention_time_comment
+        )
+        if not rt:
+            rt = create_retention_times(
+                db, 
+                [pydantic_models.RetentionTimeCreate(
+                    retention_time=mcc.retention_time,
+                    comment=mcc.retention_time_comment
+                )]
+            )[0]
+            
+        # Check molecular_formula
+        
+        
+        
+            
+        # Create MeasuredCompoundCreate objects
+        measured_compounds_create.append(
+            pydantic_models.MeasuredCompoundCreate(
+                compound_id=mcc.compound_id,
+                retention_time_id=rt.retention_time_id,
+                adduct_id=adduct.adduct_id
+            )
+        )
+        
+    if len(measured_compounds_create) == 0:
+        raise ValueError("All input data is invalid. Please check it.")
+    
+    
+    return {"valid": measured_compounds_create,
+            "invalid": measured_compounds_invalid}
+
 def create_measured_compounds(
     db: Session, 
     measured_compounds: list[pydantic_models.MeasuredCompoundCreate]
-    ):
-    db_measured_compounds = [
-        schema.MeasuredCompound(
-            compound_id=measured_compound.compound_id,
-            retention_time_id=measured_compound.retention_time_id,
-            adduct_id=measured_compound.adduct_id
-        )
-        for measured_compound in measured_compounds
-    ]
-    db.add_all(db_measured_compounds)
-    db.commit()
-    for measured_compound in db_measured_compounds:
-        db.refresh(measured_compound)
+    ) -> list[schema.MeasuredCompound]:
     
-    return db_measured_compounds
+    # Create db schema objects
+    mc_schema = [
+        schema.MeasuredCompound(
+            compound_id=mc.compound_id,
+            retention_time_id=mc.retention_time_id,
+            adduct_id=mc.adduct_id
+        )
+        for mc in measured_compounds
+        
+        if not get_measured_compound_by_ids(
+            db, mc.compound_id, mc.adduct_id, mc.retention_time_id
+        )
+    ]
+    
+    # Add to database
+    db.add_all(mc_schema)
+    db.commit()
+    for mc in mc_schema:
+        db.refresh(mc)
+    
+    return mc_schema
 
 
 def get_measured_compounds(db: Session, skip: int = 0, limit: int = 100):
