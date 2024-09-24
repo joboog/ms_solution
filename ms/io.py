@@ -152,12 +152,12 @@ def insert_db(api_url, endpoint, dicts = list[dict]):
     return response.json()
 
 
-def get_from_db(base_url, endpoint):
+def get_from_db(base_url, endpoint, params=None):
     assert [type(x) == str for x in [base_url, endpoint]]
     url = base_url + endpoint
-    response = requests.get(url)
+    response = requests.get(url, params=params)
     if response.status_code != 200:
-        raise Exception(f"Failed to get compounds: {response.text}")
+        raise Exception(f"Failed to get data: {response.text}")
     return response.json()
 
 
