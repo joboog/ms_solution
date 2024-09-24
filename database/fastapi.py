@@ -83,25 +83,19 @@ def get_adducts(
 
 @app.post(
     "/measured_compounds/",
-    response_model=list[pydantic_models.MeasuredCompound]
+    response_model=list[pydantic_models.MeasuredCompoundClient]
 )
 def create_measured_compounds(
-    measured_compounds: list[pydantic_models.MeasuredCompoundCreate],
+    measured_compounds: list[pydantic_models.MeasuredCompoundClient],
     db: Session = Depends(get_db)
     ):
-    msrd_cmps_to_add = []
-    for msrd_cmp in measured_compounds:
-        found = io.get_measured_compound_by_ids(
-            db, 
-            compound_id=msrd_cmp.compound_id,
-            retention_time_id=msrd_cmp.retention_time_id,
-            adduct_id=msrd_cmp.adduct_id
-        )
-        if not found:
-            msrd_cmps_to_add.append(msrd_cmp)
-        
-    return io.create_measured_compound(db, msrd_cmps_to_add)
-
+    try:
+        msc_d = io.prepare_measured_compounds_create(db, measured_compounds)
+        created = io.create_measured_compounds(db, msc_d["valid"])
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    return msc_d["invalid"]
 
 @app.get(
     "/measured_compounds/", 
