@@ -17,17 +17,6 @@ def get_db():
     finally:
         db.close()
 
-@app.post("/compound/", response_model=pydantic_models.Compound)
-def create_compound(
-  compound: pydantic_models.CompoundCreate,
-  db: Session = Depends(get_db)
-  ):
-    db_compund = io.get_compound_by_compound_name(
-      db, compound_name=compound.compound_name
-    )
-    if db_compund:
-        raise HTTPException(status_code=400, detail="Compound already exists")
-    return io.create_compound(db=db, compound=compound)
 
 @app.post("/compounds/", response_model=list[pydantic_models.Compound])
 def create_compounds(
@@ -109,24 +98,6 @@ def get_measured_compounds(
     msrd_cmps = io.get_measured_compounds(db, skip=skip, limit=limit)
     return msrd_cmps
 
-
-@app.post(
-    "/retention_times/",
-    response_model=list[pydantic_models.RetentionTime]
-)
-def create_retention_times(
-    retention_times: list[pydantic_models.RetentionTimeCreate],
-    db: Session = Depends(get_db)
-    ):
-    rts_to_add = []
-    for rt in retention_times:
-        found = io.get_retention_time_by_value_comment(
-            db, retention_time=rt.retention_time, comment=rt.comment
-        )
-        if not found:
-            rts_to_add.append(rt)
-        
-    return io.create_retention_times(db, rts_to_add)
 
 @app.get(
     "/retention_times/", 
