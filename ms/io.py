@@ -149,6 +149,13 @@ class DataHolder:
         ])
         dicts = [model.model_dump() for model in self.data]
         insert_db(self.api_url, "/retention_times/", dicts)
+        
+    def insert_measured_compounds_in_db(self):
+        assert all([
+          isinstance(model, MeasuredCompoundClient) for model in self.data
+        ])
+        dicts = [model.model_dump() for model in self.data]
+        insert_db(self.api_url, "/measured_compounds/", dicts)
 
 
 # Client db api
