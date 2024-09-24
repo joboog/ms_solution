@@ -6,7 +6,7 @@ import openpyxl
 import pandas as pd
 import requests
 
-from .utils import is_valid_json
+from .utils import is_valid_json, check_unique_cols
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from database.pydantic_models import CompoundCreate, AdductCreate, \
@@ -160,16 +160,4 @@ def get_from_db(base_url, endpoint, params=None):
     if response.status_code != 200:
         raise Exception(f"Failed to get data: {response.text}")
     return response.json()
-
-
-def check_unique_cols(df, unique_cols):
-    non_unique_cols = [
-          col for col in unique_cols 
-          if len(df[col].unique()) != len(df[col])
-        ]
-    if len(non_unique_cols) > 0:
-      raise ValueError(
-        f"Duplicates in columns {non_unique_cols} are not allowed."
-      )
-    return True
   
