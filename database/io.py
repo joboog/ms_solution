@@ -44,6 +44,24 @@ def get_compound_by_compound_name(db: Session, compound_name: str):
     )
     return result
 
+def get_compounds_by_ids(db: Session, compound_ids: list[int]):
+    result = (db.query(schema.Compound)
+                .filter(schema.Compound.compound_id.in_(compound_ids))
+                .all()
+    )
+    return result
+
+def get_compound_by_id_name(
+    db: Session,
+    compound_id: int,
+    compound_name: str):
+    result = (db.query(schema.Compound)
+                .filter(schema.Compound.compound_id == compound_id,
+                        schema.Compound.compound_name == compound_name)
+                .all()
+    )
+    return result
+
 
 def create_adducts(db: Session, adducts: list[pydantic_models.AdductCreate]):
     db_adducts = [
