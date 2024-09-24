@@ -157,6 +157,9 @@ class DataHolder:
         dicts = [model.model_dump() for model in self.data]
         insert_db(self.api_url, "/measured_compounds/", dicts)
         
+    def get_compounds_from_db(self):
+        return get_from_db(self.api_url, "/compounds/")
+    
     def get_measured_compounds_from_db(
       self, 
       retention_time: float | None = None, 
