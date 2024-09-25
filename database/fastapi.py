@@ -37,7 +37,7 @@ def create_compounds(
 @app.get("/compounds/", response_model=list[pydantic_models.Compound])
 def get_compounds(
     skip: int = 0, 
-    limit: int = 100, 
+    limit: int = 10000, 
     db: Session = Depends(get_db)
     ):
     compounds = io.get_compounds(db, skip=skip, limit=limit)
